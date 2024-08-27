@@ -43,16 +43,13 @@ export default defineComponent({
   setup() {
     const energyUsages = ref<number[]>([])
 
-    // Funkcja pobierająca dane
     const fetchEnergyData = () => {
       getEnergyData((error: Error | null, data?: { energyData: Record<string, number[]> }) => {
-        // Ustawienie odpowiedniego typu dla `error`
         if (error) {
           console.error('Błąd podczas pobierania danych:', error)
           return
         }
 
-        // Przyjmijmy, że chcesz wyświetlić tylko ostatnią wartość zużycia energii dla każdej maszyny
         if (data) {
           const machines = [
             'Packer1',

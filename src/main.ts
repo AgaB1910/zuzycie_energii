@@ -11,7 +11,6 @@ import Calendar from 'primevue/calendar'
 import MultiSelect from 'primevue/multiselect'
 import Button from 'primevue/button'
 import RadioButton from 'primevue/radiobutton'
-import Chart from 'chart.js/auto'
 
 import App from './App.vue'
 import router from './router/index'
