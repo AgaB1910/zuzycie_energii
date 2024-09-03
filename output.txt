@@ -1,0 +1,22 @@
+Dane dla Packer1 wygenerowane pomyślnie.
+Dane dla Packer2 wygenerowane pomyślnie.
+Dane dla Packer3 wygenerowane pomyślnie.
+Dane dla Packer4 wygenerowane pomyślnie.
+Dane dla Packer5 wygenerowane pomyślnie.
+Dane dla Packer6 wygenerowane pomyślnie.
+Dane dla Packer7 wygenerowane pomyślnie.
+Dane dla Packer8 wygenerowane pomyślnie.
+Dane dla Packer9 wygenerowane pomyślnie.
+Dane dla Packer10 wygenerowane pomyślnie.
+Weryfikacja danych przed zapisaniem do pliku:
+Linia: Packer1, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer2, Liczba rekordów: 26497, Pierwsze 5 wartości: 92.03350942475952,5.913846440998483,34.78226352930509,64.45304094059972,39.33177708041844
+Linia: Packer3, Liczba rekordów: 26497, Pierwsze 5 wartości: 49.914941666416944,90.19649851283825,50.31513096212621,40.554881188214424,2.286361287152072
+Linia: Packer4, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer5, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer6, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer7, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer8, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Linia: Packer9, Liczba rekordów: 26497, Pierwsze 5 wartości: 45.749897454023184,14.990457754569842,98.02778556728988,67.7588754284917,3.65208829103727
+Linia: Packer10, Liczba rekordów: 26497, Pierwsze 5 wartości: 0,0,0,0,0
+Dane symulacyjne zostały wygenerowane i zapisane do pliku symulacja_zuzycia_energii.json.

@@ -19,7 +19,7 @@ function generateEnergyConsumption(
   intervalMinutes: number
 ): number[] {
   const data: number[] = []
-  let currentTime = startDate
+  let currentTime = new Date(startDate) // Tworzymy nową instancję dla uniknięcia mutacji
 
   while (currentTime <= endDate) {
     const dayOfWeek = currentTime.getDay()
@@ -44,43 +44,43 @@ function generateEnergyConsumption(
 // Definicja linii produkcyjnych i ich harmonogramów pracy
 const lines: Line[] = [
   {
-    name: 'Parker1',
+    name: 'Packer1',
     shifts: [
       { startHour: 7, endHour: 15, workDays: new Set([1, 2, 3, 4, 5]) },
       { startHour: 16, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }
     ]
   },
-  { name: 'Parker2', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
-  { name: 'Parker3', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
+  { name: 'Packer2', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
+  { name: 'Packer3', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
   {
-    name: 'Parker4',
+    name: 'Packer4',
     shifts: [{ startHour: 8, endHour: 16, workDays: new Set([0, 1, 2, 3, 4, 5, 6]) }]
   },
   {
-    name: 'Parker5',
+    name: 'Packer5',
     shifts: [
       { startHour: 7, endHour: 15, workDays: new Set([1, 2, 3, 4, 5]) },
       { startHour: 16, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }
     ]
   },
   {
-    name: 'Parker6',
+    name: 'Packer6',
     shifts: [{ startHour: 8, endHour: 16, workDays: new Set([0, 1, 2, 3, 4, 5, 6]) }]
   },
   {
-    name: 'Parker7',
+    name: 'Packer7',
     shifts: [{ startHour: 8, endHour: 16, workDays: new Set([0, 1, 2, 3, 4, 5, 6]) }]
   },
   {
-    name: 'Parker8',
+    name: 'Packer8',
     shifts: [
       { startHour: 7, endHour: 15, workDays: new Set([1, 2, 3, 4, 5]) },
       { startHour: 16, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }
     ]
   },
-  { name: 'Parker9', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
+  { name: 'Packer9', shifts: [{ startHour: 0, endHour: 24, workDays: new Set([1, 2, 3, 4, 5]) }] },
   {
-    name: 'Parker10',
+    name: 'Packer10',
     shifts: [{ startHour: 8, endHour: 16, workDays: new Set([0, 1, 2, 3, 4, 5, 6]) }]
   }
 ]
@@ -92,18 +92,43 @@ const intervalMinutes = 5
 
 // Generowanie danych dla każdej linii produkcyjnej
 const energyConsumptionData: { [key: string]: number[] } = {}
-lines.forEach((line) => {
-  energyConsumptionData[line.name] = generateEnergyConsumption(
-    line,
-    startDate,
-    endDate,
-    intervalMinutes
+const failedLines = new Set<string>()
+
+lines.forEach((line) => failedLines.add(line.name))
+
+while (failedLines.size > 0) {
+  lines.forEach((line) => {
+    if (!failedLines.has(line.name)) {
+      return // Skip lines that already have data generated
+    }
+
+    try {
+      const data = generateEnergyConsumption(line, startDate, endDate, intervalMinutes)
+      energyConsumptionData[line.name] = data
+      failedLines.delete(line.name)
+
+      // Debugowanie
+      console.log(`Dane dla ${line.name} wygenerowane pomyślnie.`)
+    } catch (error) {
+      console.error(`Błąd podczas generowania danych dla ${line.name}:`, error)
+    }
+  })
+}
+
+// Weryfikacja poprawności danych przed zapisem
+console.log('Weryfikacja danych przed zapisaniem do pliku:')
+Object.entries(energyConsumptionData).forEach(([lineName, data]) => {
+  console.log(
+    `Linia: ${lineName}, Liczba rekordów: ${data.length}, Pierwsze 5 wartości: ${data.slice(0, 5)}`
   )
 })
 
 // Zapisanie danych do pliku JSON
-fs.writeFileSync('symulacja_zuzycia_energii.json', JSON.stringify(energyConsumptionData, null, 2))
-
-console.log(
-  'Dane symulacyjne zostały wygenerowane i zapisane do pliku symulacja_zuzycia_energii.json.'
-)
+try {
+  fs.writeFileSync('symulacja_zuzycia_energii.json', JSON.stringify(energyConsumptionData, null, 2))
+  console.log(
+    'Dane symulacyjne zostały wygenerowane i zapisane do pliku symulacja_zuzycia_energii.json.'
+  )
+} catch (error) {
+  console.error('Błąd podczas zapisywania pliku:', error)
+}

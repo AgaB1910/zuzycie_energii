@@ -1,44 +1,63 @@
-import * as fs from 'fs'
-import data from './symulacja_zuzycia_energii.json' assert { type: 'json' }
+export async function getEnergyData(
+  startDate: Date,
+  endDate: Date
+): Promise<{
+  totalUsage: number
+  avgUsagePerHour: number
+  avgPower: number
+  averageUsages: Record<string, number>
+}> {
+  try {
+    const response = await fetch('/symulacja_zuzycia_energii.json') // Ścieżka względna lub absolutna
 
-export function getEnergyData(
-  callback: (
-    error: Error | null,
-    data?: { totalUsage: number; avgUsagePerHour: number; avgPower: number }
-  ) => void
-): void {
-  fs.readFile('symulacja_zuzycia_energii.json', 'utf-8', (error, data) => {
-    if (error) {
-      console.error('Błąd podczas odczytu pliku:', error)
-      callback(error as Error)
-      return
+    if (!response.ok) {
+      throw new Error(`Błąd sieciowy podczas ładowania danych: ${response.statusText}`)
     }
 
-    try {
-      const energyData = JSON.parse(data)
+    const energyData = await response.json()
+    let totalUsage = 0
+    let totalMinutes = 0
+    const averageUsages: Record<string, number> = {}
 
-      let totalUsage = 0
-      let totalHours = 0
+    // Iteracja przez wszystkie klucze (linie) w danych
+    for (const [line, usageArray] of Object.entries(energyData)) {
+      if (Array.isArray(usageArray)) {
+        let lineTotalUsage = 0
+        let lineTotalMinutes = 0
 
-      // Iterowanie przez każdą linię
-      for (const line in energyData) {
-        if (Object.prototype.hasOwnProperty.call(energyData, line)) {
-          const usageArray = energyData[line]
+        usageArray.forEach((entry: any) => {
+          const entryDate = new Date(entry.timestamp) // Zakładamy, że timestamp jest częścią danych
 
-          // Sumowanie zużycia energii i liczby godzin
-          totalUsage += usageArray.reduce((sum: number, value: number) => sum + value, 0)
-          totalHours += usageArray.length
-        }
+          // Filtrowanie danych według daty
+          if (entryDate >= startDate && entryDate <= endDate) {
+            lineTotalUsage += entry.energy
+            lineTotalMinutes += 1 // Zliczamy każdą próbkę
+          }
+        })
+
+        // Obliczanie średniego zużycia energii na godzinę dla każdej maszyny
+        averageUsages[line] = lineTotalMinutes
+          ? lineTotalUsage / (lineTotalMinutes / 12) // 12 próbek na godzinę (5-minutowe interwały)
+          : 0
+
+        totalUsage += lineTotalUsage
+        totalMinutes += lineTotalMinutes
+      } else {
+        throw new Error(`Nieprawidłowy format danych dla linii: ${line}`)
       }
-
-      const avgUsagePerHour = totalUsage / totalHours
-
-      const avgPower = avgUsagePerHour
-
-      callback(null, { totalUsage, avgUsagePerHour, avgPower })
-    } catch (parseError) {
-      console.error('Błąd podczas parsowania danych:', parseError)
-      callback(parseError as Error) // Rzutowanie typu `unknown` na `Error`
     }
-  })
+
+    // Obliczanie średniego zużycia energii na godzinę
+    const avgUsagePerHour = totalMinutes ? totalUsage / (totalMinutes / 12) : 0
+
+    // Zakładamy, że "avgPower" to średnia moc, która może być obliczana na podstawie "avgUsagePerHour"
+    // Możesz dostosować tę formułę w zależności od konkretnych potrzeb
+    const avgPower = avgUsagePerHour // Możesz dostosować tę formułę w zależności od konkretnych danych dotyczących mocy
+
+    // Zwracanie danych jako obiekt
+    return { totalUsage, avgUsagePerHour, avgPower, averageUsages }
+  } catch (error) {
+    console.error('Błąd podczas przetwarzania danych:', error)
+    throw error // Przekazanie błędu dalej, aby można było go obsłużyć wyżej
+  }
 }

@@ -7,15 +7,6 @@
           <div class="flex items-center">
             <RadioButton
               v-model="ingredient"
-              inputId="ingredient1"
-              name="rozdzielczosc"
-              value="12h"
-            />
-            <label for="ingredient1" class="ml-2">12h</label>
-          </div>
-          <div class="flex items-center">
-            <RadioButton
-              v-model="ingredient"
               inputId="ingredient2"
               name="rozdzielczosc"
               value="Dzien"

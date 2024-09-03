@@ -33,19 +33,41 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue'
+import { defineComponent, ref, onMounted, watch, computed, PropType } from 'vue'
 import { getEnergyData } from '@/getEnergyData'
 
 export default defineComponent({
-  name: 'MachinesList',
-  setup() {
+  name: 'CardsList',
+  props: {
+    startDate: {
+      type: Date,
+      required: true
+    },
+    endDate: {
+      type: Date,
+      required: true
+    },
+    totalEnergyUsage: {
+      type: String,
+      required: true
+    },
+    avgEnergyUsagePerHour: {
+      type: String,
+      required: true
+    },
+    avgPower: {
+      type: String,
+      required: true
+    },
+    selectedMachines: {
+      type: Array as PropType<string[]>,
+      required: true
+    }
+  },
+  setup(props) {
     const minutes = ref(5)
     const seconds = ref(0)
-    const totalEnergyUsage = ref('Ładowanie danych...')
-    const avgEnergyUsagePerHour = ref('Ładowanie danych...')
-    const avgPower = ref('Ładowanie danych...')
 
-    // Licznik odliczający 5 minut
     const startTimer = () => {
       const timerInterval = setInterval(() => {
         if (seconds.value > 0) {
@@ -55,54 +77,45 @@ export default defineComponent({
           seconds.value = 59
         } else {
           clearInterval(timerInterval)
-
           minutes.value = 5
           seconds.value = 0
-
-          fetchData()
-
+          fetchData(props.startDate, props.endDate, props.selectedMachines)
           startTimer()
         }
       }, 1000)
     }
 
-    const fetchData = async (): Promise<void> => {
+    const fetchData = async (startDate: Date, endDate: Date, machines: string[]): Promise<void> => {
       try {
+        console.log('Fetching data in CardsList:', startDate, endDate, machines) // Debugging
+
+        // Call external function to fetch data
         const {
           totalUsage,
           avgUsagePerHour,
           avgPower: calculatedAvgPower
-        }: {
-          totalUsage: number
-          avgUsagePerHour: number
-          avgPower: number
-        } = await getEnergyData()
+        } = await getEnergyData(startDate, endDate, machines)
 
-        totalEnergyUsage.value = `${totalUsage.toFixed(2)} kWh`
-        avgEnergyUsagePerHour.value = `${avgUsagePerHour.toFixed(2)} kWh/godz.`
-        avgPower.value = `${calculatedAvgPower.toFixed(2)} kW`
+        // Updating parent props may not reflect here, they should be updated in parent component and passed again
+        // Log fetched values for debugging
+        console.log('Fetched data:', totalUsage, avgUsagePerHour, calculatedAvgPower)
       } catch (error) {
-        totalEnergyUsage.value = 'Błąd pobierania danych'
-        avgEnergyUsagePerHour.value = 'Błąd pobierania danych'
-        avgPower.value = 'Błąd pobierania danych'
+        console.error('Error fetching data in CardsList:', error)
       }
     }
 
+    const formattedSeconds = computed(() =>
+      seconds.value < 10 ? `0${seconds.value}` : seconds.value
+    )
+
     onMounted(() => {
       startTimer()
-      fetchData()
     })
-
-    const formattedSeconds = computed(() =>
-      seconds.value < 10 ? `0${seconds.value}` : seconds.value.toString()
-    )
 
     return {
       minutes,
-      formattedSeconds,
-      totalEnergyUsage,
-      avgEnergyUsagePerHour,
-      avgPower
+      seconds,
+      formattedSeconds
     }
   }
 })
