@@ -12,17 +12,17 @@
 
     <div class="card card2">
       <div class="card-header">
-        <span class="card-title">Średnie zużycie energii na godzinę:</span>
+        <span class="card-title">Średnie zużycie energii na dzień:</span>
         <span class="card-timer">{{ minutes }}:{{ formattedSeconds }}</span>
       </div>
       <div class="card-content">
-        <p>{{ avgEnergyUsagePerHour }}</p>
+        <p>{{ avgEnergyUsagePerDay }}</p>
       </div>
     </div>
 
     <div class="card card3">
       <div class="card-header">
-        <span class="card-title">Średnia moc:</span>
+        <span class="card-title">Średnia moc na godzinę:</span>
         <span class="card-timer">{{ minutes }}:{{ formattedSeconds }}</span>
       </div>
       <div class="card-content">
@@ -33,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, watch, computed, PropType } from 'vue'
+import { defineComponent, ref, computed, onMounted, type PropType } from 'vue'
 import { getEnergyData } from '@/getEnergyData'
 
 export default defineComponent({
@@ -51,7 +51,7 @@ export default defineComponent({
       type: String,
       required: true
     },
-    avgEnergyUsagePerHour: {
+    avgEnergyUsagePerDay: {
       type: String,
       required: true
     },
@@ -92,13 +92,12 @@ export default defineComponent({
         // Call external function to fetch data
         const {
           totalUsage,
-          avgUsagePerHour,
+          avgUsagePerDay,
           avgPower: calculatedAvgPower
         } = await getEnergyData(startDate, endDate, machines)
 
-        // Updating parent props may not reflect here, they should be updated in parent component and passed again
         // Log fetched values for debugging
-        console.log('Fetched data:', totalUsage, avgUsagePerHour, calculatedAvgPower)
+        console.log('Fetched data:', totalUsage, avgUsagePerDay, calculatedAvgPower)
       } catch (error) {
         console.error('Error fetching data in CardsList:', error)
       }

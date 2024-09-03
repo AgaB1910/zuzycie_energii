@@ -7,16 +7,13 @@
           <div class="flex-container">
             <!-- Maszyny -->
             <div class="col" style="line-height: 1">
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer1</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer2</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer3</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer4</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer5</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer6</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer7</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer8</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer9</div>
-              <div class="text-center p-3 border-round-sm bg-primary font-bold">Packer10</div>
+              <div
+                v-for="machine in machines"
+                :key="machine"
+                class="text-center p-3 border-round-sm bg-primary font-bold"
+              >
+                {{ machine }}
+              </div>
             </div>
             <!-- Zużycie energii -->
             <div class="col" style="line-height: 1">
@@ -25,7 +22,7 @@
                 :key="index"
                 class="text-center p-3 border-round-sm bg-primary font-bold"
               >
-                {{ usage }}
+                {{ usage.toFixed(2) }}
               </div>
             </div>
           </div>
@@ -46,7 +43,6 @@
 import { defineComponent, ref, onMounted } from 'vue'
 import EnergyCharts from './EnergyCharts.vue'
 import { getEnergyData } from '@/getEnergyData'
-import Chart from 'chart.js'
 
 export default defineComponent({
   name: 'MaschinesList',
@@ -54,29 +50,23 @@ export default defineComponent({
     EnergyCharts
   },
   setup() {
+    const machines = ref<string[]>([])
     const energyUsages = ref<number[]>([])
 
     const fetchEnergyData = async () => {
       try {
-        const data = await getEnergyData()
+        // Użyj odpowiednich dat lub przenieś je do komponentu, jeśli są dynamiczne
+        const startDate = new Date() // Przykladowa data, zmień na właściwą
+        const endDate = new Date() // Przykladowa data, zmień na właściwą
+        const data = await getEnergyData(startDate, endDate)
         console.log('Otrzymane dane:', data)
 
-        const machines = [
-          'Packer1',
-          'Packer2',
-          'Packer3',
-          'Packer4',
-          'Packer5',
-          'Packer6',
-          'Packer7',
-          'Packer8',
-          'Packer9',
-          'Packer10'
-        ]
+        // Ustaw maszyny dynamicznie na podstawie dostępnych danych
+        machines.value = Object.keys(data.averageUsages)
 
         // Przetwarzanie danych dla wyświetlenia
-        energyUsages.value = machines.map((machine) => {
-          return data.averageUsages[machine] || 0 // Pobierz średnie zużycie lub 0, jeśli brak danych
+        energyUsages.value = machines.value.map((machine) => {
+          return data.averageUsages[machine] || 0
         })
 
         console.log('Przetworzone zużycia energii:', energyUsages.value)
@@ -86,11 +76,12 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      console.log('Komponent zamontowany, wywoływanie fetchEnergyData') // Sprawdź, czy komponent jest montowany
+      console.log('Komponent zamontowany, wywoływanie fetchEnergyData')
       fetchEnergyData()
     })
 
     return {
+      machines,
       energyUsages
     }
   }

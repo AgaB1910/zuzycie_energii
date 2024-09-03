@@ -1,5 +1,6 @@
 <template>
   <div class="flex flex-row flex-wrap">
+    <!-- Twoje elementy interfejsu -->
     <div
       class="flex align-items-center justify-content-center w-15rem h-4rem bg-primary font-bold border-round m-2"
     >
@@ -35,7 +36,7 @@
     :startDate="startDate ?? new Date()"
     :endDate="endDate ?? new Date()"
     :totalEnergyUsage="totalEnergyUsage"
-    :avgEnergyUsagePerHour="avgEnergyUsagePerHour"
+    :avgEnergyUsagePerDay="avgEnergyUsagePerHour"
     :avgPower="avgPower"
     :selectedMachines="selectedMachines"
   />
@@ -48,6 +49,7 @@ import { defineComponent, ref } from 'vue'
 import CardsList from './CardsList.vue'
 import FiltersData from './FiltersData.vue'
 import MaschinesList from './MaschinesList.vue'
+import { getEnergyData } from '@/getEnergyData'
 
 export default defineComponent({
   name: 'StartPage',
@@ -56,7 +58,6 @@ export default defineComponent({
     FiltersData,
     MaschinesList
   },
-
   setup() {
     const selectedDates = ref<Date[] | null>(null)
     const selectedMachines = ref<string[]>([])
@@ -65,6 +66,7 @@ export default defineComponent({
     const avgPower = ref<string>('Ładowanie danych...')
     const startDate = ref<Date | null>(null)
     const endDate = ref<Date | null>(null)
+
     const machines = ref<{ name: string }[]>([
       { name: 'Packer1' },
       { name: 'Packer2' },
@@ -79,38 +81,77 @@ export default defineComponent({
     ])
 
     const handleSave = () => {
-      console.log('Save clicked') // Debugging: Check if the function is called
+      console.log('Save clicked')
+      console.log('Selected Dates:', selectedDates.value)
       if (selectedDates.value && selectedDates.value.length === 2) {
         const [start, end] = selectedDates.value
 
-        // Check if startDate is before endDate
         if (start > end) {
           alert('Data zakończenia nie może być przed datą rozpoczęcia.')
           return
         }
 
-        // Update startDate and endDate
         startDate.value = start
         endDate.value = end
 
-        // Call the method to calculate data
-        fetchData(start, end)
+        console.log('Start Date:', startDate.value)
+        console.log('End Date:', endDate.value)
+
+        fetchData(start, end, selectedMachines.value)
       } else {
         alert('Proszę wybrać prawidłowy zakres dat.')
       }
     }
 
-    const fetchData = async (startDate: Date, endDate: Date) => {
+    const fetchData = async (startDate: Date, endDate: Date, selectedMachines: string[]) => {
       try {
-        console.log('Fetching data for range:', startDate, endDate, selectedMachines.value) // Debugging
+        console.log('Fetching data for range:', startDate, endDate, selectedMachines)
 
-        // Simulate fetching and processing data
-        // In real case, replace this with your fetch call logic
-        totalEnergyUsage.value = '200 kWh' // Replace with actual data fetching logic
-        avgEnergyUsagePerHour.value = '20 kWh/godz.'
-        avgPower.value = '5 kW'
+        if (!startDate || !endDate) {
+          throw new Error('Nieprawidłowy zakres dat')
+        }
+
+        if (!Array.isArray(selectedMachines)) {
+          throw new Error('selectedMachines powinien być tablicą')
+        }
+
+        console.log('Wywołanie getEnergyData z argumentami:', startDate, endDate, selectedMachines)
+        const data = await getEnergyData(startDate, endDate, selectedMachines)
+
+        console.log('Fetched data:', data)
+
+        const { totalUsage, avgUsagePerHour, avgPower } = data
+
+        if (totalUsage === undefined || avgUsagePerHour === undefined || avgPower === undefined) {
+          throw new Error('Dane zwrócone przez getEnergyData są nieprawidłowe')
+        }
+
+        console.log('Przypisywanie wartości:', { totalUsage, avgUsagePerHour, avgPower })
+        console.log(
+          'Typ totalEnergyUsage:',
+          typeof totalEnergyUsage,
+          'Typ wartości:',
+          typeof totalUsage
+        )
+
+        if (typeof totalEnergyUsage.value !== 'string') {
+          console.error('totalEnergyUsage.value jest nadpisywane:', totalEnergyUsage)
+        }
+
+        // Przypisywanie wartości do ref
+        totalEnergyUsage.value = totalUsage.toString()
+        avgEnergyUsagePerHour.value = avgUsagePerHour.toString()
+        avgPower.value = avgPower.toString()
+
+        console.log('Total Energy Usage:', totalEnergyUsage.value)
+        console.log('Average Energy Usage Per Hour:', avgEnergyUsagePerHour.value)
+        console.log('Average Power:', avgPower.value)
       } catch (error) {
         console.error('Błąd podczas pobierania danych:', error)
+
+        // Sprawdzenie typu błędu i logowanie, aby lepiej go zdiagnozować
+        console.log('Typ błędu:', typeof error)
+
         totalEnergyUsage.value = 'Błąd pobierania danych'
         avgEnergyUsagePerHour.value = 'Błąd pobierania danych'
         avgPower.value = 'Błąd pobierania danych'
@@ -131,5 +172,3 @@ export default defineComponent({
   }
 })
 </script>
-
-<style scoped></style>
